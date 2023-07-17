@@ -61,8 +61,6 @@ def _main_(args):
     # Load best model
     model.load_weights(config['test']['model_file'])
 
-    print(model.summary())
-
     # Data sequence for testing
     test_gen = DataSequence( config["test"]["test_images"], config["test"]["test_annotations"],  config["test"]["test_batch_size"],  config["model"]["classes"] , config["model"]['im_height'] , config["model"]['im_width'] , config["model"]['out_height'] , config["model"]['out_width'], do_augment=False)
 
@@ -78,23 +76,20 @@ def _main_(args):
     # for metric, value in zip(metrics, scores[1:]):
     #     print("mean {}: {:.5}".format(metric.__name__, value))
     
-    # image = test_gen[2][0]
-    # print(image.shape)
-    # image = cv2.imread('data/train/images/Town04_Clear_Noon_09_09_2020_14_57_22_frame_30.png')
-    # image = cv2.resize(image, (320,240)).reshape(1, 240,320, 3)
+    image = test_gen[1][0]
+    print(image.shape)
 
-    # print(image.min(), image.max())
-    # pred = model.predict(image)
-    # print(pred.shape)
-    # pred = pred[:,:,:,1:2].reshape(240,320,1)
+    pred = model.predict(image)
+    print(pred.shape)
+    pred = pred[:,:,:,1:2].reshape(240,320,1)
     # pred[pred >= 0.2] = 1
     # pred[pred < 0.2] = 0
 
-    # # pred = pred * 255
-    # print(pred.min(), pred.max())
-    # cv2.imshow('', image[0])
-    # cv2.imshow('_',pred)
-    # cv2.waitKey(0)
+    # pred = pred * 255
+    print(pred.min(), pred.max())
+    cv2.imshow('', image[0])
+    cv2.imshow('_',pred)
+    cv2.waitKey(0)
 
 if __name__ == '__main__':
     # parse the arguments

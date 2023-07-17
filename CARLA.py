@@ -18,7 +18,6 @@ from test_carla import lane_detect
 import cv2
 import tensorflow as tf
 from PIL import Image
-from image_stack import stack_image
 
 # index = 0
 
@@ -71,15 +70,15 @@ from image_stack import stack_image
 
 
 class Carla:
-    WIDTH = 320
-    HEIGHT = 240
+    WIDTH = 128
+    HEIGHT = 128
     index = 0
     SHOW_CAM = True
-    SAVE = True
+    SAVE = False
 
     def __init__(self):
         self.client = carla.Client('localhost', 2000)
-        self.client.set_timeout(3.0)
+        self.client.set_timeout(4.0)
         
         self.world = self.client.load_world('Town04')
 
@@ -115,7 +114,7 @@ class Carla:
         self.sensor.listen(lambda image: self.process_img(image))
         self.actor_list.append(self.sensor)
 
-        time.sleep(60)
+        time.sleep(90)
         self.destroy()
 
     def destroy(self):
@@ -127,20 +126,21 @@ class Carla:
         # transform data to detect
         image = np.array(image.raw_data)
         image = image.reshape(1, self.HEIGHT, self.WIDTH, 4)[:,:,:,:3]
+
         # detect
         lane_mask = lane_detect(image)
         lane_mask = lane_mask[:,:,:,1:2].reshape(self.HEIGHT, self.WIDTH, 1)
+        # lane_mask = np.concatenate((lane_mask, lane_mask, lane_mask), axis= 2)
 
-        # hough transform
+        # # hough transform
         image = image.reshape(self.HEIGHT, self.WIDTH, 3)
-        lane_dilate, lane_hough = self.hough_transform(image, lane_mask)
+        # lane_dilate, lane_hough = self.hough_transform(image, lane_mask)
 
         # show cam
         if self.SHOW_CAM:
-            # image_stack = stack_image(1, ([image, lane_mask], [lane_dilate, lane_hough]))
             cv2.imshow('image', image)
-            cv2.imshow("", lane_mask)
-            cv2.waitKey(1)
+            cv2.imshow("lane_mask", lane_mask)
+            cv2.waitKey(2)
         if self.SAVE:
             self.save(image, lane_mask)
 
@@ -167,7 +167,7 @@ class Carla:
 
         image = Image.fromarray(image.astype('uint8'))
         image.save(f'save_image/{self.index}_image.png')
-        lane_mask = Image.fromarray((lane_mask*255).reshape(240,320).astype('uint8'))
+        lane_mask = Image.fromarray((lane_mask*255).reshape(self.HEIGHT,self.WIDTH).astype('uint8'))
         lane_mask.save(f'save_image/{self.index}_lane_mask.png')
         self.index +=1
     
