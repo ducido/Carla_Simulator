@@ -60,21 +60,10 @@ def _main_(args):
 
     # Load best model
     model.load_weights(config['test']['model_file'])
+    # print(model.summary())
 
     # Data sequence for testing
     test_gen = DataSequence( config["test"]["test_images"], config["test"]["test_annotations"],  config["test"]["test_batch_size"],  config["model"]["classes"] , config["model"]['im_height'] , config["model"]['im_width'] , config["model"]['out_height'] , config["model"]['out_width'], do_augment=False)
-
-    # iou = sm.metrics.IOUScore(threshold=0.5)
-    # fscore = sm.metrics.FScore(threshold=0.5)
-    # metrics = [iou, fscore]
-    # model.compile(optimizer=Adam(0.1), loss="binary_crossentropy",
-    #     metrics=metrics)
-
-    # model.evaluate(test_gen)
-    # scores = model.evaluate(test_gen)
-    # print("Loss: {:.5}".format(scores[0]))
-    # for metric, value in zip(metrics, scores[1:]):
-    #     print("mean {}: {:.5}".format(metric.__name__, value))
     
     image = test_gen[1][0]
     print(image.shape)
@@ -82,10 +71,10 @@ def _main_(args):
     pred = model.predict(image)
     print(pred.shape)
     pred = pred[:,:,:,1:2].reshape(240,320,1)
-    # pred[pred >= 0.2] = 1
-    # pred[pred < 0.2] = 0
+    pred[pred >= 0.2] = 1
+    pred[pred < 0.2] = 0
 
-    # pred = pred * 255
+    pred = pred * 255
     print(pred.min(), pred.max())
     cv2.imshow('', image[0])
     cv2.imshow('_',pred)

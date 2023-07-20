@@ -19,13 +19,13 @@
         "nb_epochs":                    50,
         "debug":                        true,
         "save_model_name" :             "pretrained/UNET.h5",
-        "load_pretrained_weights":      false,
-        "pretrained_weights_path":      "pretrained/UNET.006.h5",
+        "load_pretrained_weights":      true,
+        "pretrained_weights_path":      "pretrained/UNET.050.h5",
         "logs_dir" :                    "logs_UNet"
     },
 
     "test": {
-        "model_file" :                 "pretrained/UNET.014_61k.h5",
+        "model_file" :                 "pretrained/UNET.050.h5",
         "test_images":                 "./data/val/images",
         "test_annotations":            "./data/val/masks",
         "test_batch_size":              1
