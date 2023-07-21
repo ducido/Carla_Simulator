@@ -46,10 +46,10 @@ class Segment(object):
         optimizer = Adam(train_configs["learning_rate"])
 
         # Data sequence for training
-        train_gen = DataSequence( train_configs["train_images"] , train_configs["train_annotations"],  train_configs["train_batch_size"],  model_configs['classes'] , model_configs['im_height'] , model_configs['im_width'] , model_configs['out_height'] , model_configs['out_width'], do_augment=True)
+        train_gen = DataSequence( train_configs["train_images"] , train_configs["train_annotations"],  train_configs["train_batch_size"],  model_configs['classes'] , model_configs['im_height'] , model_configs['im_width'] , model_configs['out_height'] , model_configs['out_width'], do_augment=False)
 
         # Data sequence for validation
-        val_gen = DataSequence( train_configs["val_images"] , train_configs["val_annotations"],  train_configs["val_batch_size"],  model_configs['classes'] , model_configs['im_height'] , model_configs['im_width'] , model_configs['out_height'] , model_configs['out_width'], do_augment=True)
+        val_gen = DataSequence( train_configs["val_images"] , train_configs["val_annotations"],  train_configs["val_batch_size"],  model_configs['classes'] , model_configs['im_height'] , model_configs['im_width'] , model_configs['out_height'] , model_configs['out_width'], do_augment=False)
 
         # Configure the model for training
         # https://www.depends-on-the-definition.com/unet-keras-segmenting-images/

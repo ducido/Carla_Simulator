@@ -7,7 +7,7 @@ import os
 from tqdm import tqdm
 from .augmentation import augment_seg
 import random
-random.seed(0)
+# random.seed(0)
 class_colors = [  ( random.randint(0,255),random.randint(0,255),random.randint(0,255)   ) for _ in range(5000)  ]
 from .data_loader import get_pairs_from_paths, get_image_arr, get_segmentation_arr, verify_segmentation_dataset
 import math
@@ -32,7 +32,7 @@ class DataSequence(Sequence):
         self.input_width = input_width
         self.output_height = output_height
         self.output_width = output_width
-        self.do_augment = False #do_augment
+        self.do_augment = do_augment
         self.img_seg_pairs = get_pairs_from_paths( images_path , segs_path )
 
        
@@ -53,6 +53,7 @@ class DataSequence(Sequence):
         X = []
         Y = []
         img_seg_pairs_batch = self.img_seg_pairs[idx * self.batch_size: (1 + idx) * self.batch_size]
+        random.shuffle(img_seg_pairs_batch)
         for im , seg in img_seg_pairs_batch:
 
             im = cv2.imread(im, cv2.IMREAD_COLOR)

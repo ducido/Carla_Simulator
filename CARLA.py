@@ -25,6 +25,8 @@ from useful_function import *
 class Carla:
     WIDTH = 128
     HEIGHT = 128
+    CAM_WIDTH = 320
+    CAM_HEIGHT = 240
     index = 0
     SHOW_CAM = True
     SAVE = False
@@ -34,7 +36,7 @@ class Carla:
         self.client = carla.Client('localhost', 2000)
         self.client.set_timeout(5.0)
         
-        self.world = self.client.load_world('Town04')
+        self.world = self.client.load_world('Town03')
 
         # The world contains the list blueprints that we can use for adding new
         # actors into the simulation.
@@ -68,6 +70,19 @@ class Carla:
         self.sensor.listen(lambda image: self.process_img(image))
         self.actor_list.append(self.sensor)
 
+        self.rgb_cam_behind = self.world.get_blueprint_library().find('sensor.camera.rgb')
+        self.rgb_cam_behind.set_attribute('image_size_x', f'{self.CAM_WIDTH}')
+        self.rgb_cam_behind.set_attribute('image_size_y', f'{self.CAM_HEIGHT}')
+        self.rgb_cam_behind.set_attribute('fov', '110')
+
+        # attach camera RGB to car
+        transform_behind = carla.Transform(carla.Location(x=-3.5, z=3))
+        self.sensor_behind = self.world.spawn_actor(self.rgb_cam_behind, transform_behind, attach_to=self.vehicle)
+
+        # show camera and detect lane
+        self.sensor_behind.listen(lambda image: self.view_car(image))
+        self.actor_list.append(self.sensor)
+
         # throttle, steer = self.get_info_drive()
         # self.vehicle.apply_control(carla.VehicleControl(throttle, steer))
         time.sleep(120)
@@ -77,6 +92,14 @@ class Carla:
         for actor in self.actor_list:
             actor.destroy()
         print('All cleaned up!')
+
+    def view_car(self, image):
+        image = np.array(image.raw_data)
+        image = image.reshape(1, self.CAM_HEIGHT, self.CAM_WIDTH, 4)[:,:,:,:3].reshape(self.CAM_HEIGHT, self.CAM_WIDTH, 3)
+
+        cv2.imshow('car', image)
+        cv2.waitKey(1)
+
 
     def process_img(self, image):
         # transform data to detect
@@ -99,17 +122,19 @@ class Carla:
         draw = image.copy()
         draw = birdview_transform(draw)
         left, right = find_left_right_points(lane_mask_top, draw)
+
         throttle, steering_angle = calculate_control_signal(left, right)
+
         print(f"throttle: {throttle}, steer: {steering_angle}")
         self.vehicle.apply_control(carla.VehicleControl(throttle, steering_angle))
         # self.vehicle.set_autopilot(True)
 
         # show cam
         if self.SHOW_CAM:
-            cv2.imshow("image", image)
+            # cv2.imshow("image", image)
             # cv2.imshow("lane_mask", lane_mask)
             cv2.imshow("lane_mask_top", draw)
-            cv2.waitKey(10)
+            cv2.waitKey(1)
             pass
         if self.SAVE: 
             save(image, lane_mask, self.index)

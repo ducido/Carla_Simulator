@@ -87,39 +87,6 @@ def find_left_right_points(image, draw=None):
 
     return left_point, right_point
 
-def calculate_control_signal(left_point, right_point):
-    """Calculate speed and steering angle
-    """
-
-
-    # Calculate speed and steering angle
-    # The speed is fixed to 50% of the max speed
-    # You can try to calculate speed from turning angle
-    throttle = 0.7
-    steering_angle = 0
-    im_center = WIDTH // 2
-
-    if left_point != -1 and right_point != -1:
-
-        # Calculate the deviation
-        center_point = (right_point + left_point) // 2
-        center_diff =  im_center - center_point
-
-        # Calculate steering angle
-        # You can apply some advanced control algorithm here
-        # For examples, PID
-        steering_angle = - float(center_diff * 0.01)
-
-    return throttle, steering_angle
-
-def save(image, lane_mask, index):
-    image = Image.fromarray(image.astype('uint8'))
-    image.save(f'/{index}_image.png')
-    lane_mask = Image.fromarray((lane_mask*255).reshape(HEIGHT,WIDTH).astype('uint8'))
-    lane_mask.save(f'/{index}_lane_mask.png')
-
-
-
 class PID:
     def __init__(self, kp= 1.0, ki= 0.0, kd= 0.0, setpoint= 0.0):
         self.kp = kp
@@ -157,3 +124,37 @@ class PID:
         self._last_time = now
 
         return control_signal
+pid = PID(0.03, 0.0, 0.0, setpoint=0)
+def calculate_control_signal(left_point, right_point):
+    """Calculate speed and steering angle
+    """
+
+
+    # Calculate speed and steering angle
+    # The speed is fixed to 50% of the max speed
+    # You can try to calculate speed from turning angle
+    throttle = 0.2
+    steering_angle = 0
+    im_center = WIDTH // 2
+
+    if left_point != -1 and right_point != -1:
+
+        # Calculate the deviation
+        center_point = (right_point + left_point) // 2
+        center_diff =  center_point - im_center
+
+        # Calculate steering angle
+        # You can apply some advanced control algorithm here
+        # For examples, PID
+        # steering_angle = -pid(center_diff)
+
+        center_diff = -center_diff
+        steering_angle = - float(center_diff * 0.01)
+
+    return throttle, steering_angle
+
+def save(image, lane_mask, index):
+    image = Image.fromarray(image.astype('uint8'))
+    image.save(f'/{index}_image.png')
+    lane_mask = Image.fromarray((lane_mask*255).reshape(HEIGHT,WIDTH).astype('uint8'))
+    lane_mask.save(f'/{index}_lane_mask.png')
