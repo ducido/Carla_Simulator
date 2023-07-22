@@ -30,13 +30,15 @@ class Carla:
     index = 0
     SHOW_CAM = True
     SAVE = False
-    
+    VIEW = True
+    points = []
+    target_list = []
 
     def __init__(self):
         self.client = carla.Client('localhost', 2000)
         self.client.set_timeout(5.0)
         
-        self.world = self.client.load_world('Town03')
+        self.world = self.client.load_world('Town04')
 
         # The world contains the list blueprints that we can use for adding new
         # actors into the simulation.
@@ -52,6 +54,9 @@ class Carla:
 
         # get random position of car
         self.transform = np.random.choice(self.world.get_map().get_spawn_points())
+
+        # self.pos_car.append([self.transform.location.x, self.transform.location.y])  # pos of car
+
         self.vehicle = self.world.spawn_actor(self.model_3, self.transform)
         # self.vehicle.set_autopilot(True)
         self.actor_list.append(self.vehicle)
@@ -94,11 +99,12 @@ class Carla:
         print('All cleaned up!')
 
     def view_car(self, image):
-        image = np.array(image.raw_data)
-        image = image.reshape(1, self.CAM_HEIGHT, self.CAM_WIDTH, 4)[:,:,:,:3].reshape(self.CAM_HEIGHT, self.CAM_WIDTH, 3)
+        if self.VIEW:
+            image = np.array(image.raw_data)
+            image = image.reshape(1, self.CAM_HEIGHT, self.CAM_WIDTH, 4)[:,:,:,:3].reshape(self.CAM_HEIGHT, self.CAM_WIDTH, 3)
 
-        cv2.imshow('car', image)
-        cv2.waitKey(1)
+            cv2.imshow('car', image)
+            cv2.waitKey(2)
 
 
     def process_img(self, image):
@@ -121,13 +127,24 @@ class Carla:
 
         draw = image.copy()
         draw = birdview_transform(draw)
-        left, right = find_left_right_points(lane_mask_top, draw)
 
-        throttle, steering_angle = calculate_control_signal(left, right)
+        steering_angle = 0
+        throttle = 0.3
+
+        left, right, self.points = find_target_points(lane_mask_top, self.points, draw)
+
+        self.target_list.append([(left[0] + right[0])/2, (left[1] + right[1])/2])
+
+        if len(self.target_list) > 6:
+            self.target_list.pop(0)
+        if len(self.target_list) >=3:
+            steering_angle = cal_angle(self.target_list)
+        
+        # throttle, steering_angle = calculate_control_signal(left[0], right[0])
 
         print(f"throttle: {throttle}, steer: {steering_angle}")
         self.vehicle.apply_control(carla.VehicleControl(throttle, steering_angle))
-        # self.vehicle.set_autopilot(True)
+        #self.vehicle.set_autopilot(True)
 
         # show cam
         if self.SHOW_CAM:

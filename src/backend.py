@@ -358,28 +358,28 @@ class UNET():
         print('. . . . .Building UNET. . . . .')
 
         inputs = Input(shape=(self.im_height, self.im_width, 3))
-        conv1 = self.make_conv_block(16, inputs, 1)
+        conv1 = self.make_conv_block(8, inputs, 1)
         pool1 = MaxPooling2D(pool_size=(2, 2))(conv1)
 
-        conv2 = self.make_conv_block(32, pool1, 2)
+        conv2 = self.make_conv_block(16, pool1, 2)
         pool2 = MaxPooling2D(pool_size=(2, 2))(conv2)
 
-        conv3 = self.make_conv_block(64, pool2, 3)
+        conv3 = self.make_conv_block(32, pool2, 3)
         pool3 = MaxPooling2D(pool_size=(2, 2))(conv3)
 
         # conv4 = self.make_conv_block(256, pool3, 4)
         # pool4 = MaxPooling2D(pool_size=(2, 2))(conv4)
 
-        conv4 = self.make_conv_block(128, pool3, 4)
+        conv4 = self.make_conv_block(64, pool3, 4)
 
         up5 = Concatenate()([UpSampling2D(size=(2, 2))(conv4), conv3])
-        conv5 = self.make_conv_block(64, up5, 5)
+        conv5 = self.make_conv_block(32, up5, 5)
 
         up6 = Concatenate()([UpSampling2D(size=(2, 2))(conv5), conv2])
-        conv6 = self.make_conv_block(32, up6, 6)
+        conv6 = self.make_conv_block(16, up6, 6)
 
         up7 = Concatenate()([UpSampling2D(size=(2, 2))(conv6), conv1])
-        conv7 = self.make_conv_block(16, up7, 7)
+        conv7 = self.make_conv_block(8, up7, 7)
 
         # up9 = Concatenate()([UpSampling2D(size=(2, 2))(conv8), conv1])
         # conv9 = self.make_conv_block(32, up9, 9)
@@ -388,7 +388,7 @@ class UNET():
 
         x = Reshape((self.im_width * self.im_height, self.nclasses))(conv8)
 
-        final_activation = 'sigmoid' if self.nclasses == 2 else 'softmax'
+        final_activation = 'sigmoid'
         x = Activation(final_activation)(x)
         outputs = Reshape((self.im_height, self.im_width, self.nclasses))(x)
 

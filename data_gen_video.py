@@ -108,7 +108,7 @@ def gen_segmentation(im_in):
     # Floodfill from point (0, 0)
     cv2.floodFill(hsv, mask, (160, 230), 255, loDiff=(5, 40, 100), upDiff=(5, 40, 100), flags=flags)
 
-    return mask W
+    return mask
 
 if __name__ == '__main__':
     # parse the arguments
