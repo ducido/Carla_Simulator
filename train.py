@@ -45,8 +45,8 @@ def _main_(args):
 
     # define the model and train
     segment = Segment(backend, input_size, classes)
-    model = segment.feature_extractor
-    #print(model.summary())
+    # model = segment.feature_extractor
+    # print(model.summary())
     segment.train(config["train"], config["model"])
 
 

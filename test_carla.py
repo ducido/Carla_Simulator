@@ -14,6 +14,7 @@ for gpu in tf.config.experimental.list_physical_devices('GPU'):
 import argparse
 import json
 from src.frontend import Segment
+from quant_mode import quant_model
 
 # define command line arguments
 argparser = argparse.ArgumentParser(
@@ -45,12 +46,10 @@ def lane_detect(image):
 
     # define the model and train
     segment = Segment(backend, input_size, classes)
-   
     model = segment.feature_extractor
-
     # Load best model
     model.load_weights(config['test']['model_file'])
-
+    # model = quant_model(model)
+    # print(model.summary())
     pred = model.predict(image)
-
     return pred

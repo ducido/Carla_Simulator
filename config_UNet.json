@@ -13,19 +13,19 @@
         "train_annotations":            "./data/train/masks",
         "val_images":                   "./data/val/images",
         "val_annotations":              "./data/val/masks",
-        "train_batch_size":             128,
-        "val_batch_size":               128,
+        "train_batch_size":             64,
+        "val_batch_size":               64,
         "learning_rate":                1e-3,
-        "nb_epochs":                    70,
+        "nb_epochs":                    100,
         "debug":                        true,
         "save_model_name" :             "pretrained/UNET.h5",
-        "load_pretrained_weights":      false,
-        "pretrained_weights_path":      "pretrained/UNET.050_scratch.h5",
+        "load_pretrained_weights":      true,
+        "pretrained_weights_path":      "pretrained/UNET.017.h5",
         "logs_dir" :                    "logs_UNet"
     },
 
     "test": {
-        "model_file" :                 "pretrained/UNET.070.h5",
+        "model_file" :                 "pretrained/UNET.083_250k.h5",
         "test_images":                 "./data/val/images",
         "test_annotations":            "./data/val/masks",
         "test_batch_size":              1

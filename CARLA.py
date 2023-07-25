@@ -14,14 +14,45 @@ import carla
 import random
 import time
 import numpy as np
-from test_carla import lane_detect
 import cv2
 import tensorflow as tf
 from PIL import Image
 from matplotlib.animation import FuncAnimation
 import matplotlib.pyplot as plt
 from useful_function import *
+import argparse
+import json
+from src.frontend import Segment
 
+argparser = argparse.ArgumentParser(
+    description='Evaluate Road Segmentation Model')
+
+argparser.add_argument(
+    '-c',
+    '--conf', default="config_UNet.json",
+    help='path to configuration file')
+
+
+args = argparser.parse_args()
+config_path = args.conf
+
+# Open and load the config json
+with open(config_path) as config_buffer:
+    config = json.loads(config_buffer.read())
+
+############################################### call pretrained model
+backend = config["model"]["backend"]
+input_size = (config["model"]["im_width"], config["model"]["im_height"])
+classes = config["model"]["classes"]
+
+# define the model and train
+segment = Segment(backend, input_size, classes)
+model = segment.feature_extractor
+
+# Load best model
+model.load_weights(config['test']['model_file'])
+
+############################################### main logic
 class Carla:
     WIDTH = 128
     HEIGHT = 128
@@ -30,66 +61,54 @@ class Carla:
     index = 0
     SHOW_CAM = True
     SAVE = False
-    VIEW = True
+    VIEW = False
     points = []
     target_list = []
 
     def __init__(self):
         self.client = carla.Client('localhost', 2000)
         self.client.set_timeout(5.0)
-        
         self.world = self.client.load_world('Town04')
-
-        # The world contains the list blueprints that we can use for adding new
-        # actors into the simulation.
         blueprint_library = self.world.get_blueprint_library()
-
-        # Now let's filter all the blueprints of type 'vehicle' and choose one
-        # at random.
-        #print(blueprint_library.filter('vehicle'))
         self.model_3 = blueprint_library.filter('model3')[0]
 
     def reset(self):
         self.actor_list = []
 
-        # get random position of car
+        ###### get random position of car
         self.transform = np.random.choice(self.world.get_map().get_spawn_points())
-
-        # self.pos_car.append([self.transform.location.x, self.transform.location.y])  # pos of car
+        # self.transform = carla.Transform(carla.Location(x=-7.530000, y=208.919998, z=0.500000), carla.Rotation(pitch=0.000000, yaw=89.999954, roll=0.000000))
+        print(self.transform)
 
         self.vehicle = self.world.spawn_actor(self.model_3, self.transform)
         # self.vehicle.set_autopilot(True)
         self.actor_list.append(self.vehicle)
 
-        # define camera RGB
+        ##### define camera RGB
         self.rgb_cam = self.world.get_blueprint_library().find('sensor.camera.rgb')
         self.rgb_cam.set_attribute('image_size_x', f'{self.WIDTH}')
         self.rgb_cam.set_attribute('image_size_y', f'{self.HEIGHT}')
         self.rgb_cam.set_attribute('fov', '110')
 
         # attach camera RGB to car
-        transform = carla.Transform(carla.Location(x=2.0, z=1.1))
+        transform = carla.Transform(carla.Location(x=2.1, z=1.6))
         self.sensor = self.world.spawn_actor(self.rgb_cam, transform, attach_to=self.vehicle)
 
-        # show camera and detect lane
-        self.sensor.listen(lambda image: self.process_img(image))
-        self.actor_list.append(self.sensor)
-
+        ##### define camera RGB behind car
         self.rgb_cam_behind = self.world.get_blueprint_library().find('sensor.camera.rgb')
         self.rgb_cam_behind.set_attribute('image_size_x', f'{self.CAM_WIDTH}')
         self.rgb_cam_behind.set_attribute('image_size_y', f'{self.CAM_HEIGHT}')
         self.rgb_cam_behind.set_attribute('fov', '110')
 
         # attach camera RGB to car
-        transform_behind = carla.Transform(carla.Location(x=-3.5, z=3))
+        transform_behind = carla.Transform(carla.Location(x=-6, z=4))
         self.sensor_behind = self.world.spawn_actor(self.rgb_cam_behind, transform_behind, attach_to=self.vehicle)
 
-        # show camera and detect lane
+        self.sensor.listen(lambda image: self.process_img(image))
+        self.actor_list.append(self.sensor)
         self.sensor_behind.listen(lambda image: self.view_car(image))
         self.actor_list.append(self.sensor)
 
-        # throttle, steer = self.get_info_drive()
-        # self.vehicle.apply_control(carla.VehicleControl(throttle, steer))
         time.sleep(120)
         self.destroy()
 
@@ -102,10 +121,8 @@ class Carla:
         if self.VIEW:
             image = np.array(image.raw_data)
             image = image.reshape(1, self.CAM_HEIGHT, self.CAM_WIDTH, 4)[:,:,:,:3].reshape(self.CAM_HEIGHT, self.CAM_WIDTH, 3)
-
             cv2.imshow('car', image)
-            cv2.waitKey(2)
-
+            cv2.waitKey(1)
 
     def process_img(self, image):
         # transform data to detect
@@ -113,46 +130,33 @@ class Carla:
         image = image.reshape(1, self.HEIGHT, self.WIDTH, 4)[:,:,:,:3]
 
         # detect
-        lane_mask = lane_detect(image)
+        lane_mask = model.predict(image)
         lane_mask = lane_mask[:,:,:,1:2].reshape(self.HEIGHT, self.WIDTH, 1)
-        lane_mask[lane_mask >= 0.6] = 1
-        lane_mask[lane_mask < 0.6] = 0
-        # lane_mask = np.concatenate((lane_mask, lane_mask, lane_mask), axis= 2)
-
-        # # hough transform
-        image = image.reshape(self.HEIGHT, self.WIDTH, 3)
-        # lane_dilate, lane_hough = hough_transform(image, lane_mask)
+        lane_mask[lane_mask >= 0.7] = 1
+        lane_mask[lane_mask < 0.7] = 0
 
         lane_mask_top = birdview_transform(lane_mask)
 
+        image = image.reshape(self.HEIGHT, self.WIDTH, 3)
         draw = image.copy()
         draw = birdview_transform(draw)
 
-        steering_angle = 0
-        throttle = 0.3
-
-        left, right, self.points = find_target_points(lane_mask_top, self.points, draw)
-
-        self.target_list.append([(left[0] + right[0])/2, (left[1] + right[1])/2])
-
-        if len(self.target_list) > 6:
-            self.target_list.pop(0)
-        if len(self.target_list) >=3:
-            steering_angle = cal_angle(self.target_list)
-        
-        # throttle, steering_angle = calculate_control_signal(left[0], right[0])
-
+        left, right, self.points = find_left_right_points(lane_mask_top, self.points, draw)
+        throttle, steering_angle = calculate_control_signal(left, right)
         print(f"throttle: {throttle}, steer: {steering_angle}")
-        self.vehicle.apply_control(carla.VehicleControl(throttle, steering_angle))
-        #self.vehicle.set_autopilot(True)
 
-        # show cam
+        # self.vehicle.apply_control(carla.VehicleControl(throttle, steering_angle))
+        self.vehicle.set_autopilot(True)
+
         if self.SHOW_CAM:
-            # cv2.imshow("image", image)
-            # cv2.imshow("lane_mask", lane_mask)
-            cv2.imshow("lane_mask_top", draw)
+            cv2.imshow("image", image)
+            cv2.imshow("lane_mask", lane_mask)
+            # cv2.imshow("lane_mask", lane_hough)
+            # cv2.imshow("lane_mask_top", lane_mask_top)
+            # cv2.imshow("draw", draw)
             cv2.waitKey(1)
             pass
+        
         if self.SAVE: 
             save(image, lane_mask, self.index)
             self.index += 1

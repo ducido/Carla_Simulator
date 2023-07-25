@@ -67,16 +67,17 @@ def _main_(args):
     
     image = test_gen[1][0]
     print(image.shape)
+    cv2.imshow('', image[0])
 
     pred = model.predict(image)
     print(pred.shape)
-    pred = pred[:,:,:,1:2].reshape(240,320,1)
-    pred[pred >= 0.2] = 1
-    pred[pred < 0.2] = 0
+    pred = pred[:,:,:,:1].reshape(128,128,1)
+    # pred[pred >= 0.2] = 1
+    # pred[pred < 0.2] = 0
 
     pred = pred * 255
     print(pred.min(), pred.max())
-    cv2.imshow('', image[0])
+    
     cv2.imshow('_',pred)
     cv2.waitKey(0)
 

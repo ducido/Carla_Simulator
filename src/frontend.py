@@ -8,8 +8,8 @@ from tensorflow.keras.optimizers import Adam
 from src.data_utils.DataSequence import DataSequence
 from src.backend import ENET, VGG, UNET
 from tensorflow.keras import callbacks
-
 import segmentation_models as sm
+from quant_mode import quant_model
 
 class Segment(object):
 
@@ -67,8 +67,7 @@ class Segment(object):
         iou = sm.metrics.IOUScore(threshold=0.5)
         fscore = sm.metrics.FScore(threshold=0.5)
         metrics = [iou, fscore]
-
-    
+        
         self.feature_extractor.compile(optimizer=optimizer, loss=total_loss,
             metrics=metrics)
 

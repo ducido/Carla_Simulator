@@ -1,7 +1,7 @@
 import tensorflow as tf
 from tensorflow.keras import Input, Model
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, concatenate, BatchNormalization, PReLU, SpatialDropout2D, Add, \
-    Conv2DTranspose, ReLU, Activation, Permute, ZeroPadding2D, UpSampling2D, Dense, Reshape, Concatenate
+    Conv2DTranspose, ReLU, Activation, Permute, ZeroPadding2D, UpSampling2D, Dense, Reshape, Concatenate, Dropout
 
 class ENET():
 
@@ -133,6 +133,57 @@ class ENET():
 
         return y
 
+    # def build(self):
+    #     """
+    #         Build the model for training
+    #     """
+
+    #     print('. . . . .Building ENet. . . . .')
+
+    #     img_input = Input(shape=(self.im_height, self.im_width, 3), name='image_input')
+
+    #     x = self.initial_block(img_input)
+
+    #     x = self.bottleneck_encoder(x, 64, downsampling=True, normal=True, name='1.0', drate=0.01)
+    #     for _ in range(1, 5):
+    #         x = self.bottleneck_encoder(x, 64, normal=True, name=f'1.{_}', drate=0.01)
+
+    #     # Encoder Block
+    #     x = self.bottleneck_encoder(x, 128, downsampling=True, normal=True, name=f'2.0')
+    #     x = self.bottleneck_encoder(x, 128, normal=True, name=f'2.1')
+    #     x = self.bottleneck_encoder(x, 128, dilated=True, name=f'2.2')
+    #     x = self.bottleneck_encoder(x, 128, asymmetric=True, name=f'2.3')
+    #     x = self.bottleneck_encoder(x, 128, dilated=True, name=f'2.4')
+    #     x = self.bottleneck_encoder(x, 128, normal=True, name=f'2.5')
+    #     x = self.bottleneck_encoder(x, 128, dilated=True, name=f'2.6')
+    #     x = self.bottleneck_encoder(x, 128, asymmetric=True, name=f'2.7')
+    #     x = self.bottleneck_encoder(x, 128, dilated=True, name=f'2.8')
+
+    #     x = self.bottleneck_encoder(x, 128, normal=True, name=f'3.0')
+    #     x = self.bottleneck_encoder(x, 128, dilated=True, name=f'3.1')
+    #     x = self.bottleneck_encoder(x, 128, asymmetric=True, name=f'3.2')
+    #     x = self.bottleneck_encoder(x, 128, dilated=True, name=f'3.3')
+    #     x = self.bottleneck_encoder(x, 128, normal=True, name=f'3.4')
+    #     x = self.bottleneck_encoder(x, 128, dilated=True, name=f'3.5')
+    #     x = self.bottleneck_encoder(x, 128, asymmetric=True, name=f'3.6')
+    #     x = self.bottleneck_encoder(x, 128, dilated=True, name=f'3.7')
+
+    #     # Decoder Block
+    #     x = self.bottleneck_decoder(x, 64, upsampling=True, name='4.0')
+    #     x = self.bottleneck_decoder(x, 64, normal=True, name='4.1')
+    #     x = self.bottleneck_decoder(x, 64, normal=True, name='4.2')
+
+    #     x = self.bottleneck_decoder(x, 16, upsampling=True, name='5.0')
+    #     x = self.bottleneck_decoder(x, 16, normal=True, name='5.1')
+
+    #     img_output = Conv2DTranspose(self.nclasses, kernel_size=(2, 2), strides=(2, 2), kernel_initializer='he_normal',
+    #                                  padding='same', name='image_output')(x)
+    #     final_activation = 'sigmoid' if self.nclasses == 2 else 'softmax'
+    #     img_output = Activation(final_activation)(img_output)
+
+    #     model = Model(inputs=img_input, outputs=img_output, name='ENET')
+    #     print('. . . . .Build Compeleted. . . . .')
+    #     return model
     def build(self):
         """
             Build the model for training
@@ -154,19 +205,19 @@ class ENET():
         x = self.bottleneck_encoder(x, 128, dilated=True, name=f'2.2')
         x = self.bottleneck_encoder(x, 128, asymmetric=True, name=f'2.3')
         x = self.bottleneck_encoder(x, 128, dilated=True, name=f'2.4')
-        x = self.bottleneck_encoder(x, 128, normal=True, name=f'2.5')
-        x = self.bottleneck_encoder(x, 128, dilated=True, name=f'2.6')
-        x = self.bottleneck_encoder(x, 128, asymmetric=True, name=f'2.7')
-        x = self.bottleneck_encoder(x, 128, dilated=True, name=f'2.8')
+        # x = self.bottleneck_encoder(x, 128, normal=True, name=f'2.5')
+        # x = self.bottleneck_encoder(x, 128, dilated=True, name=f'2.6')
+        # x = self.bottleneck_encoder(x, 128, asymmetric=True, name=f'2.7')
+        # x = self.bottleneck_encoder(x, 128, dilated=True, name=f'2.8')
 
         x = self.bottleneck_encoder(x, 128, normal=True, name=f'3.0')
         x = self.bottleneck_encoder(x, 128, dilated=True, name=f'3.1')
         x = self.bottleneck_encoder(x, 128, asymmetric=True, name=f'3.2')
         x = self.bottleneck_encoder(x, 128, dilated=True, name=f'3.3')
-        x = self.bottleneck_encoder(x, 128, normal=True, name=f'3.4')
-        x = self.bottleneck_encoder(x, 128, dilated=True, name=f'3.5')
-        x = self.bottleneck_encoder(x, 128, asymmetric=True, name=f'3.6')
-        x = self.bottleneck_encoder(x, 128, dilated=True, name=f'3.7')
+        # x = self.bottleneck_encoder(x, 128, normal=True, name=f'3.4')
+        # x = self.bottleneck_encoder(x, 128, dilated=True, name=f'3.5')
+        # x = self.bottleneck_encoder(x, 128, asymmetric=True, name=f'3.6')
+        # x = self.bottleneck_encoder(x, 128, dilated=True, name=f'3.7')
 
         # Decoder Block
         x = self.bottleneck_decoder(x, 64, upsampling=True, name='4.0')
@@ -178,13 +229,12 @@ class ENET():
 
         img_output = Conv2DTranspose(self.nclasses, kernel_size=(2, 2), strides=(2, 2), kernel_initializer='he_normal',
                                      padding='same', name='image_output')(x)
-        final_activation = 'sigmoid' if self.nclasses == 2 else 'softmax'
+        final_activation = 'sigmoid'
         img_output = Activation(final_activation)(img_output)
 
         model = Model(inputs=img_input, outputs=img_output, name='ENET')
         print('. . . . .Build Compeleted. . . . .')
         return model
-
 
 class VGG():
 
@@ -293,63 +343,17 @@ class UNET():
 
         def make_stage(input_tensor, stage):
             name = 'conv_{}_{}'.format(block, stage)
-            x = Conv2D(nb_filters, (3, 3), activation='relu',
+            x = Conv2D(nb_filters, (3, 3), activation= 'relu',
                        padding='same', name=name)(input_tensor)
             name = 'batch_norm_{}_{}'.format(block, stage)
+            x = Dropout(0.2)(x)
             x = BatchNormalization(name=name)(x)
-            # x = Activation('relu')(x)
+            x = Activation('relu')(x)
             return x
 
         x = make_stage(input_tensor, 1)
         # x = make_stage(x, 2)
         return x
-
-    # def build(self):
-    #     """
-    #     Build the model for training
-    #     """
-    #     print('. . . . .Building UNET. . . . .')
-
-    #     inputs = Input(shape=(self.im_height, self.im_width, 3))
-    #     conv1 = self.make_conv_block(32, inputs, 1)
-    #     pool1 = MaxPooling2D(pool_size=(2, 2))(conv1)
-
-    #     conv2 = self.make_conv_block(64, pool1, 2)
-    #     pool2 = MaxPooling2D(pool_size=(2, 2))(conv2)
-
-    #     conv3 = self.make_conv_block(128, pool2, 3)
-    #     pool3 = MaxPooling2D(pool_size=(2, 2))(conv3)
-
-    #     conv4 = self.make_conv_block(256, pool3, 4)
-    #     pool4 = MaxPooling2D(pool_size=(2, 2))(conv4)
-
-    #     conv5 = self.make_conv_block(512, pool4, 5)
-
-    #     up6 = Concatenate()([UpSampling2D(size=(2, 2))(conv5), conv4])
-    #     conv6 = self.make_conv_block(256, up6, 6)
-
-    #     up7 = Concatenate()([UpSampling2D(size=(2, 2))(conv6), conv3])
-    #     conv7 = self.make_conv_block(128, up7, 7)
-
-    #     up8 = Concatenate()([UpSampling2D(size=(2, 2))(conv7), conv2])
-    #     conv8 = self.make_conv_block(64, up8, 8)
-
-    #     up9 = Concatenate()([UpSampling2D(size=(2, 2))(conv8), conv1])
-    #     conv9 = self.make_conv_block(32, up9, 9)
-
-    #     conv10 = Conv2D(self.nclasses, (1, 1), name='conv_10_1')(conv9)
-
-    #     x = Reshape((self.im_width * self.im_height, self.nclasses))(conv10) # why the next layer of flatten is activation
-
-    #     final_activation = 'sigmoid' if self.nclasses == 2 else 'softmax'
-    #     x = Activation(final_activation)(x)
-    #     outputs = Reshape((self.im_height, self.im_width, self.nclasses))(x) # why they flatten just for the activation layer
-
-    #     model = Model(inputs=inputs, outputs=outputs)
-
-    #     print('. . . . .Build Compeleted. . . . .')
-
-    #     return model
 
     def build(self):
         """
@@ -358,42 +362,35 @@ class UNET():
         print('. . . . .Building UNET. . . . .')
 
         inputs = Input(shape=(self.im_height, self.im_width, 3))
-        conv1 = self.make_conv_block(8, inputs, 1)
+        conv1 = self.make_conv_block(16, inputs, 1)
         pool1 = MaxPooling2D(pool_size=(2, 2))(conv1)
 
-        conv2 = self.make_conv_block(16, pool1, 2)
+        conv2 = self.make_conv_block(32, pool1, 2)
         pool2 = MaxPooling2D(pool_size=(2, 2))(conv2)
 
-        conv3 = self.make_conv_block(32, pool2, 3)
+        conv3 = self.make_conv_block(64, pool2, 3)
         pool3 = MaxPooling2D(pool_size=(2, 2))(conv3)
 
-        # conv4 = self.make_conv_block(256, pool3, 4)
-        # pool4 = MaxPooling2D(pool_size=(2, 2))(conv4)
-
-        conv4 = self.make_conv_block(64, pool3, 4)
+        conv4 = self.make_conv_block(128, pool3, 4)
 
         up5 = Concatenate()([UpSampling2D(size=(2, 2))(conv4), conv3])
-        conv5 = self.make_conv_block(32, up5, 5)
+        conv5 = self.make_conv_block(64, up5, 5)
 
         up6 = Concatenate()([UpSampling2D(size=(2, 2))(conv5), conv2])
-        conv6 = self.make_conv_block(16, up6, 6)
+        conv6 = self.make_conv_block(32, up6, 6)
 
         up7 = Concatenate()([UpSampling2D(size=(2, 2))(conv6), conv1])
-        conv7 = self.make_conv_block(8, up7, 7)
-
-        # up9 = Concatenate()([UpSampling2D(size=(2, 2))(conv8), conv1])
-        # conv9 = self.make_conv_block(32, up9, 9)
+        conv7 = self.make_conv_block(16, up7, 7)
 
         conv8 = Conv2D(self.nclasses, (1, 1), name='conv_8_1')(conv7)
 
-        x = Reshape((self.im_width * self.im_height, self.nclasses))(conv8)
-
-        final_activation = 'sigmoid'
-        x = Activation(final_activation)(x)
-        outputs = Reshape((self.im_height, self.im_width, self.nclasses))(x)
+        outputs = Activation('sigmoid')(conv8)
 
         model = Model(inputs=inputs, outputs=outputs)
-
         print('. . . . .Build Compeleted. . . . .')
 
         return model
+    
+# model = ENET((128,128), 2)
+# model = model.build()
+# print(model.summary())

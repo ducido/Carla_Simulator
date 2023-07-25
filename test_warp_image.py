@@ -30,8 +30,8 @@ image_bird = birdview_transform(mask)
 
 draw = image.copy()
 draw = birdview_transform(draw)
-left, right  = find_left_right_points(image_bird, draw= draw)
-print(left, right)
+# left, right  = find_left_right_points(image_bird, draw= draw)
+# print(left, right)
 
 plt.subplot(2,3,1)
 plt.imshow(image)
