@@ -25,7 +25,7 @@
     },
 
     "test": {
-        "model_file" :                 "pretrained/UNET.083_250k.h5",
+        "model_file" :                 "pretrained/UNET.041_dropout.h5",
         "test_images":                 "./data/val/images",
         "test_annotations":            "./data/val/masks",
         "test_batch_size":              1
